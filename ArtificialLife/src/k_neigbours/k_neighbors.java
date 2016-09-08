@@ -10,17 +10,18 @@ public class k_neighbors {
 	public static void main(String[] args) {
 		int width = 1200;
 		int height = 740; 
-		int size = 1; // square size in pixels
+		int size = 5; // square size in pixels
 		int k = 3;
 		
 		Neighborhood neigborhood = new Neighborhood(width / size, height / size);
 		
 		GridFrame window = new GridFrame(width, height, size);
 		window.add(Color.BLACK);
-		window.add(Color.BLUE);
+		window.add(Color.GREEN);
 		window.add(Color.RED);
+		window.add(Color.ORANGE);
 		window.add(Color.YELLOW);
-		window.changeGrid(neigborhood.cells);
+		window.changeGrid(neigborhood.cells, 0);
 		window.setVisible(true);
 		
 		while(true) {
@@ -28,7 +29,7 @@ public class k_neighbors {
 			int loc = neigborhood.occupied.get(idx);
 			if(neigborhood.count(loc / neigborhood.width, loc % neigborhood.width) >= k)
 				neigborhood.move(idx);
-			window.changeGrid(neigborhood.cells);
+			window.changeGrid(neigborhood.cells, 0);
 		}
 	}
 

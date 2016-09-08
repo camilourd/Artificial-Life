@@ -13,7 +13,7 @@ public class Runner {
 	public static void main(String[] args) throws InterruptedException, IOException {
 		char[] car = {'a', 't', 'c', 'g'};
 		double[] probs = {0.2, 0.3, 0.15, 0.35};
-		double percentage = 0.6;
+		double percentage = 0.3;
 		
 		int[] dir = new int[300];
 		for(int i = 0; i < car.length; i++)

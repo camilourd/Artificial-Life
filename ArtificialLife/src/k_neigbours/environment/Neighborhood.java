@@ -1,5 +1,6 @@
 package k_neigbours.environment;
 
+import unalcol.random.integer.IntUniform;
 import unalcol.types.collection.vector.Vector;
 
 public class Neighborhood {
@@ -8,14 +9,16 @@ public class Neighborhood {
 	public Vector<Integer> available;
 	public Vector<Integer> occupied;
 	public int width, height;
+	private IntUniform avgen; 
 	
 	public Neighborhood(int width, int height) {
 		cells = new int[height][width];
 		available = new Vector<Integer>();
 		occupied = new Vector<Integer>();
+		IntUniform gen = new IntUniform(3);
 		for(int i = 0; i < height; i++)
 			for(int j = 0; j < width; j++) {
-				cells[i][j] = (int) (Math.random() * 4);
+				cells[i][j] = gen.generate();
 				if(cells[i][j] == 0)
 					available.add(i * width + j);
 				else
@@ -23,6 +26,8 @@ public class Neighborhood {
 			}
 		this.width = width;
 		this.height = height;
+		avgen = new IntUniform(available.size());
+		
 	}
 	
 	public int count(int i, int j) {
@@ -38,7 +43,7 @@ public class Neighborhood {
 	}
 	
 	public void move(int idx) {
-		int r = (int) (Math.random() * available.size());
+		int r = avgen.generate();
 		int f = available.get(r) / width;
 		int c = available.get(r) % width;
 		int i = occupied.get(idx) / width;

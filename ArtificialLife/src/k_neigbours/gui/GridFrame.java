@@ -29,9 +29,14 @@ public class GridFrame extends JFrame {
 		System.exit(0);
 	}
 	
-	public void changeGrid(int[][] grid) {
+	public void changeGrid(int[][] grid, int time) {
 		panel.drawGrid(grid);
 		this.repaint();
+		try {
+			Thread.sleep(time);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void add(Color color) {
