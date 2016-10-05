@@ -4,11 +4,12 @@ import java.awt.Color;
 
 import k_neigbours.gui.GridFrame;
 import unalcol.types.collection.list.Queue;
+import unalcol.types.collection.vector.Vector;
 
 public class SandPile {
 
 	public static void main(String[] args) throws InterruptedException {
-		int width = 1200;
+		int width = 740;
 		int height = 740;
 		int size = 10; // square size in pixels
 		int maxval = 4;
@@ -24,23 +25,28 @@ public class SandPile {
 		Arena arena = new Arena(width / size, height / size, window);
 		
 		Queue<IntPoint> q = new Queue<IntPoint>();
+		//Vector<IntPoint> points = new Vector<IntPoint>();
+		//for(int i = 0; i < 10; i++)
+			//points.add(arena.pick());
 		while(true) {
 			IntPoint p = arena.pick();
 			//IntPoint p = new IntPoint(height / (2 * size), width / (2 * size));
-			arena.increase(p);
-			q.add(p);
-			while(!q.isEmpty()) {
-				p = q.get();
-				q.del();
-				if(arena.get(p) >= maxval) {
-					while(arena.get(p) >= maxval)
-						arena.distribute(p);
-					for(IntPoint point: arena.shuffle(arena.next(p)))
-						if(arena.get(point) >= maxval)
-							q.add(point);
+			//for(IntPoint p: arena.shuffle(points)) {
+				arena.increase(p);
+				q.add(p);
+				while(!q.isEmpty()) {
+					p = q.get();
+					q.del();
+					if(arena.get(p) >= maxval) {
+						while(arena.get(p) >= maxval)
+							arena.distribute(p);
+						for(IntPoint point: arena.shuffle(arena.next(p)))
+							if(arena.get(point) >= maxval)
+								q.add(point);
+					}
 				}
-			}
-			window.changeGrid(arena.getCells(), 5);
+				window.changeGrid(arena.getCells(), 5);
+			//}
 		}
 	}
 
