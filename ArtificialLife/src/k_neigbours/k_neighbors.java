@@ -8,8 +8,8 @@ import k_neigbours.gui.GridFrame;
 public class k_neighbors {
 
 	public static void main(String[] args) {
-		int width = 1200;
-		int height = 740; 
+		int width = 700;
+		int height = 700; 
 		int size = 5; // square size in pixels
 		int k = 3;
 		
