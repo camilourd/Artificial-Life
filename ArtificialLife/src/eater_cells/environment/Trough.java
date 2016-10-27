@@ -107,7 +107,9 @@ public class Trough {
 					1 + (int) (Math.random() * 10), // metabolism
 					100 + (int) (Math.random() * 400), // limit
 					1 + (int) (Math.random() * 10 * flip_season_period),
-					new Point(x, y)));
+					new Point(x, y),
+					1 + (int) (Math.random() * 10) // pulision
+					));
 			mark[x][y] = true;
 		}
 	}
@@ -122,7 +124,7 @@ public class Trough {
 				mark[next.x][next.y] = true;
 				beings.get(i).loc = next;
 			}
-			window.changeGrid(getDraw(), 4);
+			window.changeGrid(getDraw(), 1);
 			beings.get(i).eat(food, polution);
 		}
 		killBeings(window);

@@ -23,7 +23,7 @@ public class optimiza {
 	}
 	
 	public static double powerLaw() {
-		double coarse_alpha = 0.1;
+		double coarse_alpha = -0.12;
 		double var = Math.pow(1.0 - Math.random(), coarse_alpha);
 		if(Math.random() < 0.5)
 			return -var;
@@ -89,7 +89,6 @@ public class optimiza {
 		double[] y = x.clone();
 		for(int i = 0; i < y.length; i++) {
 			y[i] += powerLaw() * sigma;
-			//y[i] += generate() * sigma;
 		}
 		return y;
 	}

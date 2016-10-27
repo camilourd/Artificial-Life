@@ -16,8 +16,9 @@ public class Being {
 	public int limit; // máximo que puede cargar
 	public int age_limit; // máximo que vive
 	public int age;
+	public int pol;
 	
-	public Being(int range, int energy, int min, int max, int metabolism, int limit, int age_limit, Point loc) {
+	public Being(int range, int energy, int min, int max, int metabolism, int limit, int age_limit, Point loc, int pol) {
 		this.range = range;
 		this.energy = energy;
 		this.min = Math.min(min, max);
@@ -27,6 +28,7 @@ public class Being {
 		this.limit = limit;
 		this.age_limit = age_limit;
 		this.age = 0;
+		this.pol= pol;
 	}
 	
 	public Point search(double[][] food, double[][] polution) {
@@ -72,7 +74,7 @@ public class Being {
 			int amount = min + (int) (Math.random() * (max - min + 1));
 			energy += Math.min(amount, limit - energy);
 			food[loc.x][loc.y] = Math.max(0, food[loc.x][loc.y] - amount);
-			polution[loc.x][loc.y] += amount;
+			polution[loc.x][loc.y] += pol;
 		}
 	}
 
@@ -81,17 +83,18 @@ public class Being {
 	}
 	
 	public Being clone() {
-		return new Being(range, energy, min, max, metabolism, limit, age_limit, new Point(loc.x, loc.y));
+		return new Being(range, energy, min, max, metabolism, limit, age_limit, new Point(loc.x, loc.y), pol);
 	}
 
 	public void mutate() {
-		switch((int) (Math.random() * 6)) {
+		switch((int) (Math.random() * 7)) {
 		case 0: range = Math.max(1, (Math.random() < 0.5)? range - 1 : range + 1);
 		case 1: min = Math.max(1, (Math.random() < 0.5)? min - 1 : min + 1);
 		case 2: max = Math.max(1, (Math.random() < 0.5)? max - 1 : max + 1);
 		case 3: metabolism = Math.max(1, (Math.random() < 0.5)? metabolism - 1 : metabolism + 1);
 		case 4: limit = Math.max(1, (Math.random() < 0.5)? limit - (limit / 10) : limit + (limit / 10));
 		case 5: age_limit = Math.max(1, (Math.random() < 0.5)? age_limit - (age_limit / 10) : age_limit + (age_limit / 10));
+		case 6: pol = Math.max(1, (Math.random() < 0.5)? pol - 1 : pol + 1);
 		}
 		min = Math.min(min, max);
 		max = Math.max(min, max);
