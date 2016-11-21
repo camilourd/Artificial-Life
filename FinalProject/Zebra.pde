@@ -5,7 +5,7 @@ public class Zebra extends Being {
   }
   
   @Override
-  public Point move(Cell[][] cells, ArrayList<Being> zebras) {
+  public Point move(Cell[][] cells, ArrayList<Being> zebras, ArrayList<Being> leopards) {
     Point destination = loc;
     float best = evaluate(cells[(int) loc.x][(int) loc.y]);
     float vision = characteristics[VISION];
@@ -21,73 +21,76 @@ public class Zebra extends Being {
         }
       }
     }
-    if(cells[(int) destination.x][(int) destination.y].resource.getAmount() > 0.0) {
-      ArrayList<Zebra> neighbours = getNeighbours(zebras);
-      Point direction = new Point(0, 0);
-      if(neighbours.size() > 1) {
-        Point alignment = computeAlignment(neighbours);
-        Point cohesion = computeCohesion(neighbours);
-        Point separation = computeSeparation(neighbours);
-        direction.sum(new Point(
-          alignment.x + cohesion.x + separation.x,
-          alignment.y + cohesion.y + separation.y
-        ).normalize(1.0));
-      }
-      Point p = new Point(destination.x - loc.x, destination.y - loc.y).normalize(1.0);
-      dir = new Point(p.x + direction.x, p.y + direction.y).normalize(1.0);
-      return dir;
+    Point direction = new Point(0,0);
+    ArrayList<Being> neighbours = getNeighbours(zebras);
+    if(neighbours.size() > 1) {
+      Point alignment = computeAlignment(neighbours);
+      Point cohesion = computeCohesion(neighbours);
+      Point separation = computeSeparation(neighbours);
+      direction = direction.sum(new Point(
+        alignment.x + cohesion.x + separation.x,
+        alignment.y + cohesion.y + separation.y
+      ).normalize(VEL));
     }
-    return levy();
+    
+    if(cells[(int) destination.x][(int) destination.y].resource.getAmount() > 0.0)
+      direction = direction.sum(loc.substract(destination).normalize(VEL));
+    neighbours = getNeighbours(leopards);
+    if(neighbours.size() > 0) {
+      Point total = new Point(0,0);
+      for(Being being: neighbours)
+        total = total.sum(being.getLoc().substract(loc));
+      direction = direction.sum(total.normalize(VEL));
+    }
+    dir = (direction.size() < 0.0001)? levy() : direction.normalize(VEL);
+    return dir;
   }
   
-  public ArrayList<Zebra> getNeighbours(ArrayList<Being> zebras) {
-    ArrayList<Zebra> neighbours = new ArrayList<Zebra>();
-    for(Being zebra: zebras)
-      if(loc.dist(zebra.getLoc()) <= characteristics[VISION])
-        neighbours.add((Zebra) zebra);
-    return neighbours;
-  }
-  
-  public Point computeAlignment(ArrayList<Zebra> zebras) {
+  public Point computeAlignment(ArrayList<Being> zebras) {
     float x = 0.0, y = 0.0;
-    for(Zebra zebra: zebras) {
+    for(Being zebra: zebras) {
       x += zebra.getDir().x;
       y += zebra.getDir().y;
     }
-    return new Point(x, y).normalize(1.0);
+    x /= zebras.size();
+    y /= zebras.size();
+    return new Point(x, y).normalize(VEL);
   }
   
-  public Point computeCohesion(ArrayList<Zebra> zebras) {
+  public Point computeCohesion(ArrayList<Being> zebras) {
     float x = 0.0, y = 0.0;
-    for(Zebra zebra: zebras) {
+    for(Being zebra: zebras) {
         x += zebra.getLoc().x;
         y += zebra.getLoc().y;
     }
-    x = (x / (zebras.size() - 1)) - loc.x;
-    y = (y / (zebras.size() - 1)) - loc.y;
-    return new Point(x, y).normalize(1.0);
+    x = (x / zebras.size()) - loc.x;
+    y = (y / zebras.size()) - loc.y;
+    return new Point(x, y).normalize(VEL);
   }
   
-  public Point computeSeparation(ArrayList<Zebra> zebras) {
+  public Point computeSeparation(ArrayList<Being> zebras) {
     float x = 0.0, y = 0.0;
-    for(Zebra zebra: zebras) {
-        x += zebra.getLoc().x - loc.x;
-        y += zebra.getLoc().y - loc.y;
+    for(Being zebra: zebras) {
+        x += loc.x - zebra.getLoc().x;
+        y += loc.y - zebra.getLoc().y;
     }
-    x /= -zebras.size() + 1;
-    y /= -zebras.size() + 1;
-    return new Point(x, y).normalize(1.0);
+    x /= zebras.size();
+    y /= zebras.size();
+    return new Point(x, y).normalize(VEL);
   }
   
   public float evaluate(Cell cell) {
     return cell.resource.getAmount() / (1.0 + cell.polution.getAmount());
   }
   
-  public void eat(Cell cell) {
-    if(cell.resource.getAmount() >= characteristics[MIN]) {
-      float amount = max(random(characteristics[MAX]), min(characteristics[METABOLISM], characteristics[MAX]));
-      energy = min(characteristics[LIMIT], energy + cell.resource.decrease(amount) * 500);
-      cell.polution.increase(characteristics[POLUTION]);
+  @Override
+  public void eat(Cell[][] cells, ArrayList<Being> zebras, ArrayList<Being> leopards) {
+    int x = (int) loc.x, y = (int) loc.y;
+    if(cells[x][y].resource.getAmount() >= characteristics[MIN]) {
+      float amount = characteristics[MIN] + random(characteristics[MAX] - characteristics[MIN]);
+      energy += min(amount, characteristics[LIMIT] - energy);
+      cells[x][y].resource.decrease(amount);
+      cells[x][y].polution.increase(characteristics[POLUTION]);
     }
   }
   

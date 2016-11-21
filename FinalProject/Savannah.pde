@@ -6,7 +6,7 @@ public class Savannah {
   private Point top;
   private Cell[][] cells;
   private ArrayList<Being> zebras;
-  private boolean[][] mark;
+  private ArrayList<Being> leopards;
   
   protected int flip_season_period = 800;
   private int period = 0;
@@ -36,6 +36,7 @@ public class Savannah {
       }
     }
     this.zebras = new ArrayList<Being>();
+    this.leopards = new ArrayList<Being>();
   }
   
   public float getRate(float dp1, float dp2, float limit) {
@@ -59,16 +60,14 @@ public class Savannah {
     return p.x + random(p.y);
   }
   
-  public void init(int beingsNumber, int alpha, int sigma) {
-    this.mark = new boolean[rows][cols];
-    int x, y;
-    for(int i = 0; i < beingsNumber; i++) {
-      do {
-        x = (int) random(rows);
-        y = (int) random(cols);
-      } while(mark[x][y]);
+  public void init(int zebraNumber, int leopardNumber, int alpha, int sigma) {
+    for(int i = 0; i < zebraNumber; i++) {
+      float x = random(rows), y = random(cols);
       zebras.add(new Zebra(new Point(x, y), generate(alpha, sigma)));
-      mark[x][y] = true;
+    }
+    for(int i = 0; i < leopardNumber; i++) {
+      float x = random(rows), y = random(cols);
+      leopards.add(new Leopard(new Point(x, y), generate(alpha, sigma)));
     }
   }
   
@@ -82,12 +81,13 @@ public class Savannah {
       limit, // limit
       1 + random(10 * flip_season_period), // age
       1 + random(10), // polution
-      1000 + random(limit - 500) // reproduce stage
+      100 + random(limit - 500) // reproduce stage
     };
   }
   
   public void update() {
-    updateZebras();
+    updateBeings(zebras);
+    updateBeings(leopards);
     period = (period + 1) % flip_season_period;
     for(int i = 0; i < rows; i++)
       for(int j = 0; j < cols; j++) {
@@ -96,70 +96,57 @@ public class Savannah {
         cells[i][j].resource.increase();
         cells[i][j].polution.decrease();
       }
+    //println(zebras.size());
   }
   
-  public void updateZebras() {
-    for(int i = 0; i < zebras.size(); i++) {
-      Zebra zebra = (Zebra) zebras.get(i);
-      if(zebra.isAlive()) {
-        /*if(zebra.isPeriod()) {
-          Being parent = zebra.findClosest(zebra.findParents(zebras));
-          for(Being being :reproduce(zebra, parent)) {
-            if(locate(being, zebra.getLoc()))
-              zebras.add(being);
-          }
-        } else {*/
-          updateBeing(zebra);
-        //}
+  public void updateBeings(ArrayList<Being> beings) {
+    for(int i = 0; i < beings.size(); i++) {
+      Being being = beings.get(i);
+      if(being.isAlive()) {
+        updateBeing(being, beings);
       } else {
-        mark[(int) zebra.getLoc().x][(int) zebra.getLoc().y] = false;
-        zebras.remove(i--);
+        beings.remove(i--);
       }
     }
   }
   
-  public boolean locate(Being being, Point center) {
-    int cx = (int) center.x, cy = (int) center.y;
-    for(int d = 1; d < cells.length; d++) {
-      for(int i = max(cx - d, 0); i <= min(cx + d, cells.length - 1); i++)
-        for(int j = max(cy - d, 0); j <= min(cy + d, cells[i].length - 1); j++)
-          if(!mark[i][j]) {
-            being.setLoc(new Point(i, j));
-            mark[i][j] = true;
-            return true;
-          }
+  public void updateBeing(Being being, ArrayList<Being> beings) {
+    being.eat(cells, zebras, leopards);
+    Point movement = being.move(cells, zebras, leopards);
+    if(being.isPeriod()) {
+      Being parent = being.findClosest(being.findParents(zebras));
+      moveBeing(being, being.moveToParent(parent));
+      if(parent != null && parent.getLoc().dist(being.getLoc()) < 2) {
+        print(beings.size() + " -> ");
+        for(Being child :reproduce(being, parent))
+          if(locate(child, being.getLoc()))
+            beings.add(being);
+        println(beings.size());
+      }
+    } else {
+      moveBeing(being, movement);
     }
-    return false;
+    being.metabolise();
   }
   
-  public void updateBeing(Being being) {
-    moveBeing(being, being.move(cells, zebras));
-    being.eat(cells[(int) being.getLoc().x][(int) being.getLoc().y]);
-    being.metabolise();
+  public boolean locate(Being being, Point center) {
+    float nx = min(max(center.x + random(10) - 5.0, 0), cells.length - 1);
+    float ny = min(max(center.y + random(10) - 5.0, 0), cells[0].length - 1);
+    being.setLoc(new Point(nx, ny));
+    return false;
   }
   
   public void moveBeing(Being being, Point movement) {
     Point act = being.getLoc();
     Point next = act.sum(movement);
-    int ax = (int) act.x, ay = (int) act.y;
-    int nx = (int) next.x, ny = (int) next.y;
-    if((ax == nx && ay == ny) || (isInside(nx, ny) && !mark[nx][ny])) {
-      mark[nx][ny] = true;
-      mark[ax][ay] = false;
-      being.setLoc(next);
-    }
-    act = being.getLoc();
+    float nx = min(max(next.x, 0), cells.length - 1);
+    float ny = min(max(next.y, 0), cells[0].length - 1);
+    being.setLoc(new Point(nx, ny));
   }
   
   public Being[] reproduce(Being mother, Being parent) {
-    if(parent != null) {
-      if(mother.getLoc().dist(parent.getLoc()) < 2.0)
-        return mother.reproduce(parent);
-      moveBeing(mother, mother.moveToParent(parent));
-    } else {
-      moveBeing(mother, mother.levy());
-      mother.metabolise();
-    }
+    if(parent != null)
+      return mother.reproduce(parent);
     return new Being[0];
   }
   
@@ -174,6 +161,8 @@ public class Savannah {
         cells[i][j].draw(pg, size);
     for(Being zebra: zebras)
       drawZebra(pg, (Zebra) zebra, size);
+    for(Being leopard: leopards)
+      drawLeopard(pg, (Leopard) leopard, size);
   }
   
   private void drawFloor(PGraphics pg) {
@@ -186,6 +175,16 @@ public class Savannah {
     Point loc = zebra.getLoc();
     pg.stroke(255, 255, 255);
     pg.fill(255, 255, 255);
+    pg.pushMatrix();
+    pg.translate(top.x + (loc.x * size) + (size / 2.0), top.y + (loc.y * size) + (size / 2.0), size / 2.0);
+    pg.box(size);
+    pg.popMatrix();
+  }
+  
+  private void drawLeopard(PGraphics pg, Leopard leopard, float size) {
+    Point loc = leopard.getLoc();
+    pg.stroke(255, 127, 39);
+    pg.fill(255, 127, 39);
     pg.pushMatrix();
     pg.translate(top.x + (loc.x * size) + (size / 2.0), top.y + (loc.y * size) + (size / 2.0), size / 2.0);
     pg.box(size);

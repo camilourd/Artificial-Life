@@ -16,15 +16,21 @@ public abstract class Being {
   public final static int POLUTION = 6;
   public final static int REPRO_LIMIT = 7;
   
+  public final static float VEL = 1.0;
+  
   public Being(Point loc, float[] characteristics) {
     this.loc = loc;
     this.characteristics = characteristics;
-    this.energy = 50.0;
+    this.energy = 100.0;
     this.age = 0;
     this.dir = randDir();
+    float min = characteristics[MIN];
+    float max = characteristics[MAX];
+    characteristics[MIN] = min(min, max);
+    characteristics[MAX] = max(min, max);
   }
   
-  public abstract Point move(Cell[][] cells, ArrayList<Being> zebras);
+  public abstract Point move(Cell[][] cells, ArrayList<Being> zebras, ArrayList<Being> leopards);
   
   public Point levy() {
     acc += Math.random();
@@ -37,7 +43,7 @@ public abstract class Being {
   }
   
   public Point randDir() {
-    return (new Point(random(100) - 50, random(100) - 50)).normalize(1.0);
+    return (new Point(random(100) - 50, random(100) - 50)).normalize(VEL);
   }
   
   public Point getLoc() {
@@ -49,8 +55,9 @@ public abstract class Being {
   }
   
   public boolean isAlive() {
-    //return age < characteristics[LIFE] && energy > 0.0;
-    return energy > 0.0;
+    return age < characteristics[LIFE] && energy > 0.0;
+    //return energy > 0.0;
+    //return true;
   }
   
   public Point getDir() {
@@ -65,13 +72,17 @@ public abstract class Being {
     Being[] childs = xover(parent);
     for(Being child: childs)
       mutate(child);
+    energy /= 2.0;
+    parent.energy /= 2.0;
+    childs[0].energy = max(100, energy);
+    childs[1].energy = max(100, parent.energy);
     return childs;
   }
   
   public void mutate(Being being) {
     float size = (float) Math.random();
     int index = (int) random(being.characteristics.length);
-    float diff = size * being.characteristics[index];
+    float diff = (size * being.characteristics[index]) / 10.0;
     being.characteristics[index] += (Math.random() < 0.5)? diff : -diff;
   }
   
@@ -87,11 +98,7 @@ public abstract class Being {
         childs_characs[1][i] = characteristics[i];
       }
     Being child1 = generate(loc, childs_characs[0]);
-    child1.energy = energy / 2;
-    energy -= child1.energy;
     Being child2 = generate(parent.loc, childs_characs[1]);
-    child2.energy = parent.energy / 2;
-    parent.energy -= child2.energy;
     return new Being[]{child1, child2};
   }
   
@@ -116,9 +123,8 @@ public abstract class Being {
   }
   
   public Point moveToParent(Being parent) {
-    if(parent != null)
-      return (parent.getLoc().substract(loc)).normalize(1.0);
-    return levy();
+    dir = (parent != null)? (loc.substract(parent.getLoc())).normalize(VEL) : levy();
+    return dir;
   }
   
   public ArrayList<Being> findParents(ArrayList<Being> beings) {
@@ -130,6 +136,14 @@ public abstract class Being {
   }
   
   public abstract boolean isPossibleParent(Being being);
-  public abstract void eat(Cell cell);
+  public abstract void eat(Cell[][] cells, ArrayList<Being> zebras, ArrayList<Being> leopards);
+  
+  public ArrayList<Being> getNeighbours(ArrayList<Being> beings) {
+    ArrayList<Being> neighbours = new ArrayList<Being>();
+    for(Being being: beings)
+      if(loc.dist(being.getLoc()) <= characteristics[VISION])
+        neighbours.add(being);
+    return neighbours;
+  }
   
 }

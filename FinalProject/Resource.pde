@@ -19,10 +19,8 @@ public class Resource {
     amount = min(amount + increment[season], limit);
   }
   
-  public float decrease(float size) {
-    float dec = min(size, amount);
-    amount -= dec;
-    return dec;
+  public void decrease(float dec) {
+    amount = max(0, amount - dec);
   }
   
   public float getAmount() {
