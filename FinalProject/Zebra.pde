@@ -1,7 +1,7 @@
 public class Zebra extends Being {
   
   public Zebra(Point loc, float[] characteristics) {
-    super(loc, characteristics);
+    super(loc, characteristics, new PImage((new AnimalCoat(AnimalCoat.ZEBRA, 23, 2.9, 2000)).toImage(32, 32, Color.BLACK, Color.WHITE)));
   }
   
   @Override
@@ -101,7 +101,8 @@ public class Zebra extends Being {
   
   @Override
   public boolean isPossibleParent(Being being) {
-    return loc.dist(being.loc) <= characteristics[VISION];
+    double dist = loc.dist(being.loc);
+    return 0.1 <= dist && dist <= characteristics[VISION];
   }
   
 }

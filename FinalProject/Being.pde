@@ -4,6 +4,7 @@ public abstract class Being {
   protected double acc = 5.0;
   protected float energy;
   protected int age;
+  protected PImage coat;
   
   protected Point dir, ldir;
   
@@ -18,7 +19,7 @@ public abstract class Being {
   
   public final static float VEL = 1.0;
   
-  public Being(Point loc, float[] characteristics) {
+  public Being(Point loc, float[] characteristics, PImage coat) {
     this.loc = loc;
     this.characteristics = characteristics;
     this.energy = 100.0;
@@ -28,6 +29,7 @@ public abstract class Being {
     float max = characteristics[MAX];
     characteristics[MIN] = min(min, max);
     characteristics[MAX] = max(min, max);
+    this.coat = coat;
   }
   
   public abstract Point move(Cell[][] cells, ArrayList<Being> zebras, ArrayList<Being> leopards);
@@ -70,8 +72,6 @@ public abstract class Being {
   
   public Being[] reproduce(Being parent) {
     Being[] childs = xover(parent);
-    for(Being child: childs)
-      mutate(child);
     energy /= 2.0;
     parent.energy /= 2.0;
     childs[0].energy = max(100, energy);
@@ -79,11 +79,12 @@ public abstract class Being {
     return childs;
   }
   
-  public void mutate(Being being) {
+  public Being mutate(Being being) {
     float size = (float) Math.random();
     int index = (int) random(being.characteristics.length);
     float diff = (size * being.characteristics[index]) / 10.0;
     being.characteristics[index] += (Math.random() < 0.5)? diff : -diff;
+    return generate(being.getLoc(), being.characteristics);
   }
   
   public Being[] xover(Being parent) {
@@ -99,7 +100,7 @@ public abstract class Being {
       }
     Being child1 = generate(loc, childs_characs[0]);
     Being child2 = generate(parent.loc, childs_characs[1]);
-    return new Being[]{child1, child2};
+    return new Being[]{mutate(child1), mutate(child2)};
   }
   
   public abstract Being generate(Point loc, float[] characteristics);

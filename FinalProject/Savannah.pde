@@ -118,9 +118,10 @@ public class Savannah {
       moveBeing(being, being.moveToParent(parent));
       if(parent != null && parent.getLoc().dist(being.getLoc()) < 2) {
         print(beings.size() + " -> ");
-        for(Being child :reproduce(being, parent))
-          if(locate(child, being.getLoc()))
-            beings.add(being);
+        for(Being child :reproduce(being, parent)) {
+          locate(child, being.getLoc());
+          beings.add(being);
+        }
         println(beings.size());
       }
     } else {
@@ -129,19 +130,31 @@ public class Savannah {
     being.metabolise();
   }
   
-  public boolean locate(Being being, Point center) {
+  public void locate(Being being, Point center) {
     float nx = min(max(center.x + random(10) - 5.0, 0), cells.length - 1);
     float ny = min(max(center.y + random(10) - 5.0, 0), cells[0].length - 1);
     being.setLoc(new Point(nx, ny));
-    return false;
   }
   
   public void moveBeing(Being being, Point movement) {
     Point act = being.getLoc();
     Point next = act.sum(movement);
-    float nx = min(max(next.x, 0), cells.length - 1);
-    float ny = min(max(next.y, 0), cells[0].length - 1);
-    being.setLoc(new Point(nx, ny));
+    if(!isCloseToBeing(next)) {
+      float nx = min(max(next.x, 0), cells.length - 1);
+      float ny = min(max(next.y, 0), cells[0].length - 1);
+      being.setLoc(new Point(nx, ny));
+    }
+  }
+  
+  public boolean isCloseToBeing(Point loc) {
+    int cnt = 0;
+    for(Being being: zebras)
+      if(loc.dist(being.getLoc()) < 0.5)
+        cnt++;
+    for(Being being: leopards)
+      if(loc.dist(being.getLoc()) < 0.5)
+        cnt++;
+    return cnt > 1;
   }
   
   public Being[] reproduce(Being mother, Being parent) {
@@ -177,7 +190,7 @@ public class Savannah {
     pg.fill(255, 255, 255);
     pg.pushMatrix();
     pg.translate(top.x + (loc.x * size) + (size / 2.0), top.y + (loc.y * size) + (size / 2.0), size / 2.0);
-    pg.box(size);
+    drawBox(pg, size, zebra.coat);
     pg.popMatrix();
   }
   
@@ -187,8 +200,62 @@ public class Savannah {
     pg.fill(255, 127, 39);
     pg.pushMatrix();
     pg.translate(top.x + (loc.x * size) + (size / 2.0), top.y + (loc.y * size) + (size / 2.0), size / 2.0);
-    pg.box(size);
+    drawBox(pg, size, leopard.coat);
     pg.popMatrix();
+  }
+  
+  private void drawBox(PGraphics pg, float sz, PImage tex) {
+    
+    pg.beginShape(QUADS);
+    pg.texture(tex);
+
+  // Given one texture and six faces, we can easily set up the uv coordinates
+  // such that four of the faces tile "perfectly" along either u or v, but the other
+  // two faces cannot be so aligned.  This code tiles "along" u, "around" the X/Z faces
+  // and fudges the Y faces - the Y faces are arbitrarily aligned such that a
+  // rotation along the X axis will put the "top" of either texture at the "top"
+  // of the screen, but is not otherwised aligned with the X/Z faces. (This
+  // just affects what type of symmetry is required if you need seamless
+  // tiling all the way around the cube)
+  float p = sz/2.0f;
+  
+  // +Z "front" face
+    pg.vertex(-p, -p,  p, 0, 0);
+    pg.vertex( p, -p,  p, 32, 0);
+    pg.vertex( p,  p,  p, 32, 32);
+    pg.vertex(-p,  p,  p, 0, 32);
+
+    // -Z "back" face
+    pg.vertex( p, -p, -p, 0, 0);
+    pg.vertex(-p, -p, -p, 32, 0);
+    pg.vertex(-p,  p, -p, 32, 32);
+    pg.vertex( p,  p, -p, 0, 32);
+
+    // +Y "bottom" face
+    pg.vertex(-p,  p,  p, 0, 0);
+    pg.vertex( p,  p,  p, 32, 0);
+    pg.vertex( p,  p, -p, 32, 32);
+    pg.vertex(-p,  p, -p, 0, 32);
+
+    // -Y "top" face
+    pg.vertex(-p, -p, -p, 0, 0);
+    pg.vertex( p, -p, -p, 32, 0);
+    pg.vertex( p, -p,  p, 32, 32);
+    pg.vertex(-p, -p,  p, 0, 32);
+
+    // +X "right" face
+    pg.vertex( p, -p,  p, 0, 0);
+    pg.vertex( p, -p, -p, 32, 0);
+    pg.vertex( p,  p, -p, 32, 32);
+    pg.vertex( p,  p,  p, 0, 32);
+
+    // -X "left" face
+    pg.vertex(-p, -p, -p, 0, 0);
+    pg.vertex(-p, -p,  p, 32, 0);
+    pg.vertex(-p,  p,  p, 32, 32);
+    pg.vertex(-p,  p, -p, 0, 32);
+
+    pg.endShape();
   }
   
 }
