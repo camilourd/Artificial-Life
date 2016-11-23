@@ -24,7 +24,7 @@ void setup() {
   scene.setRadius(150);
   scene.showAll();
   savannah = new Savannah(80, 80, 160, 0.2, 4);
-  savannah.init(100, 10, 10, 6);
+  savannah.init(400, 0, 10, 6);
 }
 
 void draw() {

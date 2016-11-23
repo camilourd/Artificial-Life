@@ -17,7 +17,7 @@ public abstract class Being {
   public final static int POLUTION = 6;
   public final static int REPRO_LIMIT = 7;
   
-  public final static float VEL = 1.0;
+  public float VEL = 1.0;
   
   public Being(Point loc, float[] characteristics, PImage coat) {
     this.loc = loc;
@@ -84,6 +84,7 @@ public abstract class Being {
     int index = (int) random(being.characteristics.length);
     float diff = (size * being.characteristics[index]) / 10.0;
     being.characteristics[index] += (Math.random() < 0.5)? diff : -diff;
+    if(being.characteristics[index] < 1.0) being.characteristics[index] = 1.0;
     return generate(being.getLoc(), being.characteristics);
   }
   

@@ -1,9 +1,18 @@
 public class Leopard extends Being {
   
-  private AnimalCoat generator;
+  private int delay;
   
   public Leopard(Point loc, float[] characteristics) {
     super(loc, characteristics, new PImage((new AnimalCoat(AnimalCoat.ZEBRA, 23, 2.9, 2000)).toImage(32, 32, Color.BLACK, Color.YELLOW)));
+    this.delay = 0;
+  }
+  
+  public boolean isWaiting() {
+    if(delay > 0) {
+      delay--;
+      return true;
+    }
+    return false;
   }
   
   @Override
@@ -12,10 +21,23 @@ public class Leopard extends Being {
     Point direction = new Point(0,0);
     if(preys.size() > 0) {
       Being prey = findClosest(preys);
+      Being old = findOldest(preys);
       direction = (loc.substract(prey.getLoc())).normalize(VEL);
+      direction = direction.sum((loc.substract(old.getLoc())).normalize(VEL)).normalize(VEL);
     }
     dir = (direction.size() < 0.0001)? levy() : direction;
     return dir;
+  }
+  
+  public Being findOldest(ArrayList<Being> beings) {
+    if(beings.size() > 0) {
+      Being oldest = beings.get(0);
+      for(Being being: beings)
+        if(oldest.age < being.age)
+          oldest = being;
+      return oldest;
+    }
+    return null;
   }
   
   @Override
@@ -32,11 +54,12 @@ public class Leopard extends Being {
   @Override
   public void eat(Cell[][] cells, ArrayList<Being> zebras, ArrayList<Being> leopards) {
     Being prey = findClosest(zebras);
-    if(prey != null && prey.getLoc().dist(loc) < 1.5) {
+    if(prey != null && prey.getLoc().dist(loc) < 1.0 && !isWaiting()) {
       float amount = prey.energy;
       energy = min(characteristics[LIMIT], energy + amount);
       cells[(int) loc.x][(int) loc.y].polution.increase(characteristics[POLUTION]);
       zebras.remove(prey);
+      delay = 3;
     }
   }
   

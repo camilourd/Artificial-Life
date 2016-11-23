@@ -60,7 +60,11 @@ public class Savannah {
     return p.x + random(p.y);
   }
   
+  private int alpha, sigma;
+  
   public void init(int zebraNumber, int leopardNumber, int alpha, int sigma) {
+    this.alpha = alpha;
+    this.sigma = sigma;
     for(int i = 0; i < zebraNumber; i++) {
       float x = random(rows), y = random(cols);
       zebras.add(new Zebra(new Point(x, y), generate(alpha, sigma)));
@@ -86,8 +90,10 @@ public class Savannah {
   }
   
   public void update() {
-    updateBeings(zebras);
+    while(leopards.size() < 2) init(0, 2 - leopards.size(), alpha, sigma);
+    while(zebras.size() < 10) init(10 - zebras.size(), 0, alpha, sigma);
     updateBeings(leopards);
+    updateBeings(zebras);
     period = (period + 1) % flip_season_period;
     for(int i = 0; i < rows; i++)
       for(int j = 0; j < cols; j++) {
@@ -115,18 +121,17 @@ public class Savannah {
     Point movement = being.move(cells, zebras, leopards);
     if(being.isPeriod()) {
       Being parent = being.findClosest(being.findParents(zebras));
-      moveBeing(being, being.moveToParent(parent));
+      movement = movement.sum(being.moveToParent(parent)).normalize(being.VEL);
       if(parent != null && parent.getLoc().dist(being.getLoc()) < 2) {
         print(beings.size() + " -> ");
-        for(Being child :reproduce(being, parent)) {
+        for(Being child: reproduce(being, parent)) {
           locate(child, being.getLoc());
-          beings.add(being);
+          beings.add(child);
         }
         println(beings.size());
       }
-    } else {
-      moveBeing(being, movement);
     }
+    moveBeing(being, movement);
     being.metabolise();
   }
   

@@ -2,6 +2,7 @@ public class Zebra extends Being {
   
   public Zebra(Point loc, float[] characteristics) {
     super(loc, characteristics, new PImage((new AnimalCoat(AnimalCoat.ZEBRA, 23, 2.9, 2000)).toImage(32, 32, Color.BLACK, Color.WHITE)));
+    this.VEL = 2.0;
   }
   
   @Override
@@ -32,9 +33,6 @@ public class Zebra extends Being {
         alignment.y + cohesion.y + separation.y
       ).normalize(VEL));
     }
-    
-    if(cells[(int) destination.x][(int) destination.y].resource.getAmount() > 0.0)
-      direction = direction.sum(loc.substract(destination).normalize(VEL));
     neighbours = getNeighbours(leopards);
     if(neighbours.size() > 0) {
       Point total = new Point(0,0);
@@ -42,7 +40,10 @@ public class Zebra extends Being {
         total = total.sum(being.getLoc().substract(loc));
       direction = direction.sum(total.normalize(VEL));
     }
-    dir = (direction.size() < 0.0001)? levy() : direction.normalize(VEL);
+    if(cells[(int) destination.x][(int) destination.y].resource.getAmount() > 0.0)
+      direction = direction.sum(loc.substract(destination).normalize(VEL));
+    direction = direction.normalize(VEL);
+    dir = (direction.size() < 0.0001)? levy() : direction;
     return dir;
   }
   
