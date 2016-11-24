@@ -3,15 +3,14 @@ public class Leopard extends Being {
   private int delay;
   
   public Leopard(Point loc, float[] characteristics) {
-    super(loc, characteristics, new PImage((new AnimalCoat(AnimalCoat.ZEBRA, 23, 2.9, 2000)).toImage(32, 32, Color.BLACK, Color.YELLOW)));
+    super(loc, characteristics, new PImage((new AnimalCoat(AnimalCoat.LEOPARD, 23, 2.9, 2000)).toImage(32, 32, Color.BLACK, Color.YELLOW)));
+    this.characteristics[REPRO_PERIOD] *= 1.2;
     this.delay = 0;
   }
   
   public boolean isWaiting() {
-    if(delay > 0) {
-      delay--;
+    if(delay > 0)
       return true;
-    }
     return false;
   }
   
@@ -54,12 +53,13 @@ public class Leopard extends Being {
   @Override
   public void eat(Cell[][] cells, ArrayList<Being> zebras, ArrayList<Being> leopards) {
     Being prey = findClosest(zebras);
+    delay--;
     if(prey != null && prey.getLoc().dist(loc) < 1.0 && !isWaiting()) {
-      float amount = prey.energy;
+      float amount = prey.energy / 2.0;
       energy = min(characteristics[LIMIT], energy + amount);
       cells[(int) loc.x][(int) loc.y].polution.increase(characteristics[POLUTION]);
       zebras.remove(prey);
-      delay = 3;
+      delay = (int) random(energy / (10.0 * characteristics[METABOLISM]));
     }
   }
   

@@ -10,6 +10,10 @@ public class Savannah {
   
   protected int flip_season_period = 800;
   private int period = 0;
+  private TreeGenerator gen = new TreeGenerator();
+  
+  public boolean trees = true;
+  public boolean floor = true;
   
   public Savannah(int rows, int cols, int alpha, float sigma, float size) {
     this.rows = rows;
@@ -32,7 +36,7 @@ public class Savannah {
         Resource resource = new Resource(amount, increment, limit);
         Polution polution = new Polution(0, (float) Math.random());
         p = new Point(top.x + (i * size) + (size / 2.0), top.y + (j * size) + (size / 2.0));
-        cells[i][j] = new Cell(resource, polution, p);
+        cells[i][j] = new Cell(resource, polution, p, gen.generate((int) random(3), p, size));
       }
     }
     this.zebras = new ArrayList<Being>();
@@ -85,12 +89,13 @@ public class Savannah {
       limit, // limit
       1 + random(10 * flip_season_period), // age
       1 + random(10), // polution
-      100 + random(limit - 500) // reproduce stage
+      100 + random(limit - 500), // reproduce stage
+      1 + random(flip_season_period / 4) // reproduction period
     };
   }
   
   public void update() {
-    while(leopards.size() < 2) init(0, 2 - leopards.size(), alpha, sigma);
+    while(leopards.size() < 4) init(0, 4 - leopards.size(), alpha, sigma);
     while(zebras.size() < 10) init(10 - zebras.size(), 0, alpha, sigma);
     updateBeings(leopards);
     updateBeings(zebras);
@@ -102,7 +107,6 @@ public class Savannah {
         cells[i][j].resource.increase();
         cells[i][j].polution.decrease();
       }
-    //println(zebras.size());
   }
   
   public void updateBeings(ArrayList<Being> beings) {
@@ -176,7 +180,7 @@ public class Savannah {
     drawFloor(pg);
     for(int i = 0; i < rows; i++)
       for(int j = 0; j < cols; j++)
-        cells[i][j].draw(pg, size);
+        cells[i][j].draw(pg, size, trees, floor);
     for(Being zebra: zebras)
       drawZebra(pg, (Zebra) zebra, size);
     for(Being leopard: leopards)
@@ -185,7 +189,7 @@ public class Savannah {
   
   private void drawFloor(PGraphics pg) {
     pg.stroke(0);
-    pg.fill(200, 138, 35);
+    pg.fill(244, 215, 113);
     pg.rect(top.x, top.y, rows * size, cols * size);
   }
   

@@ -16,13 +16,16 @@ public abstract class Being {
   public final static int LIFE = 5;
   public final static int POLUTION = 6;
   public final static int REPRO_LIMIT = 7;
+  public final static int REPRO_PERIOD = 8;
   
   public float VEL = 1.0;
+  private boolean rep_per;
+  public float li = 0.6;
   
   public Being(Point loc, float[] characteristics, PImage coat) {
     this.loc = loc;
     this.characteristics = characteristics;
-    this.energy = 100.0;
+    this.energy = 200.0;
     this.age = 0;
     this.dir = randDir();
     float min = characteristics[MIN];
@@ -30,6 +33,7 @@ public abstract class Being {
     characteristics[MIN] = min(min, max);
     characteristics[MAX] = max(min, max);
     this.coat = coat;
+    this.rep_per = false;
   }
   
   public abstract Point move(Cell[][] cells, ArrayList<Being> zebras, ArrayList<Being> leopards);
@@ -58,8 +62,6 @@ public abstract class Being {
   
   public boolean isAlive() {
     return age < characteristics[LIFE] && energy > 0.0;
-    //return energy > 0.0;
-    //return true;
   }
   
   public Point getDir() {
@@ -67,7 +69,17 @@ public abstract class Being {
   }
   
   public boolean isPeriod() {
-    return energy >= characteristics[REPRO_LIMIT] && age > characteristics[LIFE] / 3.0;
+    return energy >= characteristics[REPRO_LIMIT] && age > characteristics[LIFE] / 3.0 && isReproductivePeriod();
+  }
+  
+  int cnt = 0;
+  public boolean isReproductivePeriod() {
+    if(age % (int) characteristics[REPRO_PERIOD] == 0) {
+      cnt = (cnt + 1) % 4;
+      if(cnt == 0)
+        rep_per = !rep_per;
+    }
+    return rep_per;
   }
   
   public Being[] reproduce(Being parent) {
@@ -104,6 +116,14 @@ public abstract class Being {
     return new Being[]{mutate(child1), mutate(child2)};
   }
   
+  public float speed() {
+    return fspeed(age / characteristics[LIFE]);
+  }
+  
+  public float fspeed(float x) {
+    return (-1.5 * x - 0.4) * (x - 1) + li;
+  }
+  
   public abstract Being generate(Point loc, float[] characteristics);
   
   public Being findClosest(ArrayList<Being> beings) {
@@ -122,6 +142,7 @@ public abstract class Being {
   public void metabolise() {
     energy -= characteristics[METABOLISM];
     age++;
+    VEL = speed();
   }
   
   public Point moveToParent(Being parent) {

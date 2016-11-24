@@ -14,6 +14,7 @@ Savannah savannah;
 String renderer = P3D;
 PGraphics canvas;
 Scene scene;
+boolean pause;
 
 void setup() {
   size(620, 620, renderer);
@@ -24,7 +25,8 @@ void setup() {
   scene.setRadius(150);
   scene.showAll();
   savannah = new Savannah(80, 80, 160, 0.2, 4);
-  savannah.init(400, 0, 10, 6);
+  savannah.init(400, 10, 10, 6);
+  pause = false;
 }
 
 void draw() {
@@ -39,7 +41,17 @@ void draw() {
 }
 
 void drawObjects(PGraphics pg) {
-  savannah.update();
+  if(!pause)
+    savannah.update();
   pg.background(0);
   savannah.draw(pg);
+}
+
+void keyPressed() {
+  if(key == 'p')
+    pause = !pause;
+  else if(key == 't')
+    savannah.trees = !savannah.trees;
+  else if(key == 'f')
+    savannah.floor = !savannah.floor;
 }
