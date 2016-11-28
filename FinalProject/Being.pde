@@ -17,10 +17,7 @@ public abstract class Being {
   public final static int POLUTION = 6;
   public final static int REPRO_LIMIT = 7;
   public final static int REPRO_PERIOD = 8;
-  
-  public float VEL = 1.0;
-  private boolean rep_per;
-  public float li = 0.6;
+  public final static int MIN_SPEED = 9;
   
   public Being(Point loc, float[] characteristics, PImage coat) {
     this.loc = loc;
@@ -34,6 +31,13 @@ public abstract class Being {
     characteristics[MAX] = max(min, max);
     this.coat = coat;
     this.rep_per = false;
+  }
+  
+  public float VEL = 1.0;
+  private boolean rep_per;
+  
+  public float getVision() {
+    return characteristics[VISION];
   }
   
   public abstract Point move(Cell[][] cells, ArrayList<Being> zebras, ArrayList<Being> leopards);
@@ -96,7 +100,7 @@ public abstract class Being {
     int index = (int) random(being.characteristics.length);
     float diff = (size * being.characteristics[index]) / 10.0;
     being.characteristics[index] += (Math.random() < 0.5)? diff : -diff;
-    if(being.characteristics[index] < 1.0) being.characteristics[index] = 1.0;
+    if(being.characteristics[index] < 0.1) being.characteristics[index] = random(1);
     return generate(being.getLoc(), being.characteristics);
   }
   
@@ -121,7 +125,7 @@ public abstract class Being {
   }
   
   public float fspeed(float x) {
-    return (-1.5 * x - 0.4) * (x - 1) + li;
+    return (-1.5 * x - 0.4) * (x - 1) + characteristics[MIN_SPEED];
   }
   
   public abstract Being generate(Point loc, float[] characteristics);

@@ -25,7 +25,7 @@ void setup() {
   scene.setRadius(150);
   scene.showAll();
   savannah = new Savannah(80, 80, 160, 0.2, 4);
-  savannah.init(400, 10, 10, 6);
+  savannah.init(400, 30, 5, 3);
   pause = false;
 }
 
@@ -48,10 +48,14 @@ void drawObjects(PGraphics pg) {
 }
 
 void keyPressed() {
-  if(key == 'p')
+  if(key == ' ')
     pause = !pause;
   else if(key == 't')
     savannah.trees = !savannah.trees;
   else if(key == 'f')
     savannah.floor = !savannah.floor;
+  else if(key == 'v')
+    savannah.vision = !savannah.vision;
+  else if(key == 'p')
+    savannah.polution = !savannah.polution;
 }

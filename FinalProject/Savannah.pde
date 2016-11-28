@@ -14,6 +14,8 @@ public class Savannah {
   
   public boolean trees = true;
   public boolean floor = true;
+  public boolean polution = true;
+  public boolean vision = false;
   
   public Savannah(int rows, int cols, int alpha, float sigma, float size) {
     this.rows = rows;
@@ -64,9 +66,9 @@ public class Savannah {
     return p.x + random(p.y);
   }
   
-  private int alpha, sigma;
+  private float alpha, sigma;
   
-  public void init(int zebraNumber, int leopardNumber, int alpha, int sigma) {
+  public void init(int zebraNumber, int leopardNumber, float alpha, float sigma) {
     this.alpha = alpha;
     this.sigma = sigma;
     for(int i = 0; i < zebraNumber; i++) {
@@ -75,11 +77,13 @@ public class Savannah {
     }
     for(int i = 0; i < leopardNumber; i++) {
       float x = random(rows), y = random(cols);
-      leopards.add(new Leopard(new Point(x, y), generate(alpha, sigma)));
+      Leopard leopard = new Leopard(new Point(x, y), generate(alpha, sigma));
+      leopard.characteristics[Being.VISION] *= 1.2;
+      leopards.add(leopard);
     }
   }
   
-  public float[] generate(int alpha, int sigma) {
+  public float[] generate(float alpha, float sigma) {
     float limit = 500 + random(1500);
     return new float[]{
       alpha - sigma + random(sigma * 2), // vision
@@ -90,13 +94,14 @@ public class Savannah {
       1 + random(10 * flip_season_period), // age
       1 + random(10), // polution
       100 + random(limit - 500), // reproduce stage
-      1 + random(flip_season_period / 4) // reproduction period
+      1 + random(flip_season_period / 4), // reproduction period
+      random(1) // minimum speed
     };
   }
   
   public void update() {
     while(leopards.size() < 4) init(0, 4 - leopards.size(), alpha, sigma);
-    while(zebras.size() < 10) init(10 - zebras.size(), 0, alpha, sigma);
+    while(zebras.size() < 20) init(10 - zebras.size(), 0, alpha, sigma);
     updateBeings(leopards);
     updateBeings(zebras);
     period = (period + 1) % flip_season_period;
@@ -126,6 +131,7 @@ public class Savannah {
     if(being.isPeriod()) {
       Being parent = being.findClosest(being.findParents(zebras));
       movement = movement.sum(being.moveToParent(parent)).normalize(being.VEL);
+      //movement = being.moveToParent(parent);
       if(parent != null && parent.getLoc().dist(being.getLoc()) < 2) {
         print(beings.size() + " -> ");
         for(Being child: reproduce(being, parent)) {
@@ -180,7 +186,7 @@ public class Savannah {
     drawFloor(pg);
     for(int i = 0; i < rows; i++)
       for(int j = 0; j < cols; j++)
-        cells[i][j].draw(pg, size, trees, floor);
+        cells[i][j].draw(pg, size, trees, floor, polution);
     for(Being zebra: zebras)
       drawZebra(pg, (Zebra) zebra, size);
     for(Being leopard: leopards)
@@ -200,6 +206,11 @@ public class Savannah {
     pg.pushMatrix();
     pg.translate(top.x + (loc.x * size) + (size / 2.0), top.y + (loc.y * size) + (size / 2.0), size / 2.0);
     drawBox(pg, size, zebra.coat);
+    if(vision) {
+      pg.stroke(255, 255, 255);
+      pg.noFill();
+      pg.ellipse(0, 0, 2.0 * zebra.getVision() * size, 2.0 * zebra.getVision() * size);
+    }
     pg.popMatrix();
   }
   
@@ -210,6 +221,11 @@ public class Savannah {
     pg.pushMatrix();
     pg.translate(top.x + (loc.x * size) + (size / 2.0), top.y + (loc.y * size) + (size / 2.0), size / 2.0);
     drawBox(pg, size, leopard.coat);
+    if(vision) {
+      pg.stroke(255, 127, 39);
+      pg.noFill();
+      pg.ellipse(0, 0, 2.0 * leopard.getVision() * size, 2.0 * leopard.getVision() * size);
+    }
     pg.popMatrix();
   }
   

@@ -12,7 +12,7 @@ public class Cell {
     this.tree = tree;
   }
   
-  public void draw(PGraphics pg, float size, boolean trees, boolean floor) {
+  public void draw(PGraphics pg, float size, boolean trees, boolean floor, boolean polution) {
     if(resource.getAmount() >= 1.0) {
       if(floor) {
         pg.stroke(0);
@@ -28,6 +28,8 @@ public class Cell {
       if(resource.getAmount() > 40 && trees)
         tree.draw(pg);
     }
+    if(polution && this.polution.getAmount() > 0)
+      this.polution.draw(pg, center, size);
   }
   
 }

@@ -2,7 +2,6 @@ public class Zebra extends Being {
   
   public Zebra(Point loc, float[] characteristics) {
     super(loc, characteristics, new PImage((new AnimalCoat(AnimalCoat.ZEBRA, 23, 2.9, 2000)).toImage(32, 32, Color.BLACK, Color.WHITE)));
-    this.li = 0.7;
   }
   
   @Override

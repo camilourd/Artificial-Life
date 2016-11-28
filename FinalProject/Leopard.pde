@@ -4,8 +4,10 @@ public class Leopard extends Being {
   
   public Leopard(Point loc, float[] characteristics) {
     super(loc, characteristics, new PImage((new AnimalCoat(AnimalCoat.LEOPARD, 23, 2.9, 2000)).toImage(32, 32, Color.BLACK, Color.YELLOW)));
-    this.characteristics[REPRO_PERIOD] *= 1.2;
+    //this.characteristics[REPRO_PERIOD] *= 1.2;
     this.delay = 0;
+    //this.characteristics[MIN_SPEED] = max(0.6, characteristics[MIN_SPEED]);
+    //this.characteristics[VISION] *= 1.2;
   }
   
   public boolean isWaiting() {
@@ -18,23 +20,25 @@ public class Leopard extends Being {
   public Point move(Cell[][] cells, ArrayList<Being> zebras, ArrayList<Being> leopards) {
     ArrayList<Being> preys = getNeighbours(zebras);
     Point direction = new Point(0,0);
+    if(isWaiting())
+      return direction;
     if(preys.size() > 0) {
       Being prey = findClosest(preys);
-      Being old = findOldest(preys);
+      Being slowest = findSlowest(preys);
       direction = (loc.substract(prey.getLoc())).normalize(VEL);
-      direction = direction.sum((loc.substract(old.getLoc())).normalize(VEL)).normalize(VEL);
+      direction = direction.sum((loc.substract(slowest.getLoc())).normalize(VEL)).normalize(VEL);
     }
     dir = (direction.size() < 0.0001)? levy() : direction;
     return dir;
   }
   
-  public Being findOldest(ArrayList<Being> beings) {
+  public Being findSlowest(ArrayList<Being> beings) {
     if(beings.size() > 0) {
-      Being oldest = beings.get(0);
+      Being slowest = beings.get(0);
       for(Being being: beings)
-        if(oldest.age < being.age)
-          oldest = being;
-      return oldest;
+        if(slowest.speed() < being.speed())
+          slowest = being;
+      return slowest;
     }
     return null;
   }
@@ -55,11 +59,13 @@ public class Leopard extends Being {
     Being prey = findClosest(zebras);
     delay--;
     if(prey != null && prey.getLoc().dist(loc) < 1.0 && !isWaiting()) {
-      float amount = prey.energy / 2.0;
+      float amount = prey.energy;
       energy = min(characteristics[LIMIT], energy + amount);
       cells[(int) loc.x][(int) loc.y].polution.increase(characteristics[POLUTION]);
       zebras.remove(prey);
       delay = (int) random(energy / (10.0 * characteristics[METABOLISM]));
+    } else if(isWaiting()) {
+      cells[(int) loc.x][(int) loc.y].polution.increase(characteristics[POLUTION]);
     }
   }
   
